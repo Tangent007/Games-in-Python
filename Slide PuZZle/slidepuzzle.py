@@ -47,8 +47,9 @@ def main():
     BASICFONT=pygame.font.Font('freesansbold.ttf',BASICFONTSIZE)
 
     # store the option buttons and their rectangles in options
-    REST_SURF,REST_RECT = makeText('Reset', TEXTCOLOR,TILECOLOR,WINDOWWIDTH-120,WINDOWHEIGHT-90)
+    RESET_SURF,RESET_RECT = makeText('Reset', TEXTCOLOR,TILECOLOR,WINDOWWIDTH-120,WINDOWHEIGHT-90)
     NEW_SURF, NEW_RECT = makeText('New Game',TEXTCOLOR,TILECOLOR,WINDOWWIDTH-120,WINDOWHEIGHT-30)
+    SOLVE_SURF, SOLVE_RECT = makeText('Solve', TEXTCOLOR, TILECOLOR, WINDOWWIDTH - 120, WINDOWHEIGHT - 30)
 
     mainBoard , solutionSeq = generateNewPuzzle(80)
     SOLVEDBOARD = getStartingBoard() # a solved board is the same as the board in start state
@@ -128,7 +129,7 @@ def getStartingBoard():
             column.append(counter)
             counter+= BOARDWIDTH
         board.append(column)
-        counter _= BOARDWIDTH*(BOARDHEIGHT-1)+BOARDWIDTH-1
+        counter = BOARDWIDTH*(BOARDHEIGHT-1)+BOARDWIDTH-1
 
     board[BOARDWIDTH-1][BOARDHEIGHT-1]= None
     return board
@@ -256,4 +257,51 @@ def slideAnimation(board,direction,message,animationSpeed):
         checkForQuit()
         DISPLAYSURF.blit(baseSurf,(0,0))
         if direction == UP:
-            drawTile(movex, movey , board)
+            drawTile(movex, movey , board[movex][movey],0, -i)
+        if direction == DOWN:
+            drawTile(movex, movey, board[movex][movey],0 ,i)
+        if direction == LEFT:
+            drawTile(movex,movey, board[movex][movey],-i,0)
+        if direction == RIGHT:
+            drawTile(movex, movey, board[movex][movey],i,0)
+        
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
+
+
+def generateNewPuzzle(numSlides):
+    # from a starting configuration, make numSlides number of moves (animate these moves)
+    sequence=[]
+    board=getStartingBoard()
+    drawBoard(board,'')
+    pygame.display.update()
+    pygame.time.wait(500) # pause 500 milliseconds for effect
+    lastMove = None
+    for i in range(numSlides):
+        move = getRandomMove(board, lastMove)
+        slideAnimation(board, move, 'Generating new puzzle...', int(TILESIZE/3))
+        makeMove(board,move)
+        sequence.append(move)
+        lastMove= move
+    return (board, sequence)
+
+def resetAnimation(board, allMoves):
+    # make all of the moves in allmoves in reverse
+    revAllMoves = allMoves[:] # get a copy of the list
+    revAllMoves.reverse()
+
+    for move in revAllMoves:
+        if move == UP:
+            oppositeMove = DOWN
+        elif move == DOWN:
+            oppositeMove= UP
+        elif move == RIGHT:
+            oppositeMove = LEFT
+        elif move == LEFT:
+            oppositeMove= RIGHT
+        slideAnimation(board,oppositeMove,'',int(TILESIZE/2))
+        makeMove(board,oppositeMove)
+
+
+if __name__ == "__main__":
+    main()
