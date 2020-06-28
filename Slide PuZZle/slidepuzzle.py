@@ -129,16 +129,16 @@ def getStartingBoard():
             column.append(counter)
             counter+= BOARDWIDTH
         board.append(column)
-        counter = BOARDWIDTH*(BOARDHEIGHT-1)+BOARDWIDTH-1
+        counter -= BOARDWIDTH*(BOARDHEIGHT-1)+BOARDWIDTH-1
 
-    board[BOARDWIDTH-1][BOARDHEIGHT-1]= None
+    board[BOARDWIDTH-1][BOARDHEIGHT-1]= BLANK
     return board
 
 def getBlankPosition(board):
     # return the x and y of board coordinate of the blank space
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
-            if board[x][y]== None:
+            if board[x][y]== BLANK:
                 return (x,y)
         
 def makeMove(board,move):
