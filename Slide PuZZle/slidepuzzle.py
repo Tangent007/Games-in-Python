@@ -29,8 +29,8 @@ BUTTONCOLOR =WHITE
 BUTTONTEXTCOLOR = BLACK
 MESSAGECOLOR = WHITE
 
-XMARGIN = int((WINDOWWIDTH-(TILESIZE*(BOARDWIDTH-1)))/2)
-YMARGIN = int((WINDOWHEIGHT-(TILESIZE*(BOARDHEIGHT-1)))/2)
+XMARGIN = int((WINDOWWIDTH-(TILESIZE*BOARDWIDTH+(BOARDWIDTH-1)))/2)
+YMARGIN = int((WINDOWHEIGHT-(TILESIZE*BOARDHEIGHT+(BOARDHEIGHT-1)))/2)
 
 UP = 'up'
 DOWN = 'down'
@@ -48,7 +48,7 @@ def main():
 
     # store the option buttons and their rectangles in options
     RESET_SURF,RESET_RECT = makeText('Reset', TEXTCOLOR,TILECOLOR,WINDOWWIDTH-120,WINDOWHEIGHT-90)
-    NEW_SURF, NEW_RECT = makeText('New Game',TEXTCOLOR,TILECOLOR,WINDOWWIDTH-120,WINDOWHEIGHT-30)
+    NEW_SURF, NEW_RECT = makeText('New Game',TEXTCOLOR,TILECOLOR,WINDOWWIDTH-120,WINDOWHEIGHT-60)
     SOLVE_SURF, SOLVE_RECT = makeText('Solve', TEXTCOLOR, TILECOLOR, WINDOWWIDTH - 120, WINDOWHEIGHT - 30)
 
     mainBoard , solutionSeq = generateNewPuzzle(80)
@@ -57,53 +57,53 @@ def main():
 
     while True: # main game loop
         slideTo = None # the direction, if any a tile should slide
-        msg = '' # contains the message to show in the upper left corner
+        msg = 'Click tile or press arrow keys to slide.' # contains the message to show in the upper left corner
         if mainBoard == SOLVEDBOARD:
             msg='Solved!'
-            drawBoard(mainBoard,msg)
+        drawBoard(mainBoard,msg)
 
-            checkForQuit()
-            for event in pygame.event.get():
-                if event.type == MOUSEBUTTONUP:
-                    spotx, spoty =getSpotClicked(mainBoard,event.pos[0],event.pos[1])
-                    if(spotx,spoty) == (None,None):
-                        # check if the user clicked on an option button 
-                        if RESET_RECT.collidepoint(event.pos):
-                            resetAnimation(mainBoard,allMoves) # clicked on the reset button
-                            allMoves=[]
-                        elif NEW_RECT.collidepoint(event.pos):
-                            mainBoard,solutionSeq =generateNewPuzzle(80) # clicked on new game button
-                            allMoves=[]
-                        elif SOLVE_RECT.collidepoint(event.pos):
-                            resetAnimation(mainBoard,solutionSeq+allMoves) # clicked on solve button
-                            allMoves=[]
-                    else :
-                        # check if the clicked tile was next to the blank spot
-                        blankx, blanky = getBlankPosition(mainBoard)
-                        if spotx ==blankx+1 and spoty == blanky:
-                            slideTo=LEFT
-                        elif spotx ==blankx-1 and spoty == blanky:
-                            slideTo = RIGHT
-                        elif spotx == blankx and spoty == blanky +1:
-                            slideTo = UP
-                        elif spotx == blankx and spoty == blanky -1 :
-                            slideTo = DOWN
-                elif event.type ==KEYUP:
-                    # check if the user pressed a key slide a tile
-                    if event.key in(K_LEFT,K_a) and isValidMove(mainBoard,LEFT):
-                        slideTo = LEFT
-                    elif event.key in (K_RIGHT,K_d) and isValidMove(mainBoard,RIGHT):
+        checkForQuit()
+        for event in pygame.event.get():
+            if event.type == MOUSEBUTTONUP:
+                spotx, spoty =getSpotClicked(mainBoard,event.pos[0],event.pos[1])
+                if(spotx,spoty) == (None,None):
+                    # check if the user clicked on an option button 
+                    if RESET_RECT.collidepoint(event.pos):
+                        resetAnimation(mainBoard,allMoves) # clicked on the reset button
+                        allMoves=[]
+                    elif NEW_RECT.collidepoint(event.pos):
+                        mainBoard,solutionSeq =generateNewPuzzle(80) # clicked on new game button
+                        allMoves=[]
+                    elif SOLVE_RECT.collidepoint(event.pos):
+                        resetAnimation(mainBoard,solutionSeq+allMoves) # clicked on solve button
+                        allMoves=[]
+                else :
+                    # check if the clicked tile was next to the blank spot
+                    blankx, blanky = getBlankPosition(mainBoard)
+                    if spotx ==blankx+1 and spoty == blanky:
+                        slideTo=LEFT
+                    elif spotx ==blankx-1 and spoty == blanky:
                         slideTo = RIGHT
-                    elif event.key in (K_UP,K_w) and isValidMove(mainBoard,UP):
+                    elif spotx == blankx and spoty == blanky +1:
                         slideTo = UP
-                    elif event.key in (K_DOWN,K_s) and isValidMove(mainBoard,DOWN):
+                    elif spotx == blankx and spoty == blanky -1 :
                         slideTo = DOWN
-            if slideTo:
-                slideAnimation(mainBoard,slideTo,'Click tile or press arrow keys to slide',8) # show slide on screen
-                makeMove(mainBoard,slideTo)
-                allMoves.append(slideTo) # record the slide
-            pygame.display.update()
-            FPSCLOCK.tick(FPS)
+            elif event.type ==KEYUP:
+                # check if the user pressed a key slide a tile
+                if event.key in(K_LEFT,K_a) and isValidMove(mainBoard,LEFT):
+                    slideTo = LEFT
+                elif event.key in (K_RIGHT,K_d) and isValidMove(mainBoard,RIGHT):
+                    slideTo = RIGHT
+                elif event.key in (K_UP,K_w) and isValidMove(mainBoard,UP):
+                    slideTo = UP
+                elif event.key in (K_DOWN,K_s) and isValidMove(mainBoard,DOWN):
+                    slideTo = DOWN
+        if slideTo:
+            slideAnimation(mainBoard,slideTo,'Click tile or press arrow keys to slide',8) # show slide on screen
+            makeMove(mainBoard,slideTo)
+            allMoves.append(slideTo) # record the slide
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
 
 def terminate():
     pygame.quit()
@@ -113,9 +113,9 @@ def checkForQuit():
     for event in pygame.event.get(QUIT): # get all the quit events 
         terminate() # terminate if any QUIT events are present
     for event in pygame.event.get(KEYUP): # get all keyup events
-        if event.kay == K_ESCAPE:
+        if event.key == K_ESCAPE:
             terminate() #terminate if the keyup event was for the ESC key
-        pygame.event.pos(event) # put the other keyup event objects back
+        pygame.event.post(event) # put the other keyup event objects back
 
 def getStartingBoard():
     # return a board data structure with tiles in the solved state
