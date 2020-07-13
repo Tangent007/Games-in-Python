@@ -16,7 +16,7 @@ CELLHEIGHT = int(WINDOWHEIGHT/CELLSIZE)
 #       R   G   B
 WHITE = (255,255,255)
 BLACK = (0,0,0)
-RED = (255,0.0)
+RED = (255,0,0)
 GREEN = (0,255,0)
 DARKGREEN = (0,155,0)
 DARKGRAY = (40,40,40)
@@ -110,7 +110,7 @@ def runGame():
 def drawPressKeyMsg():
     pressKeySurf = BASICFONT.render('Press a key to play', True, DARKGRAY)
     pressKeyRect = pressKeySurf.get_rect()
-    pressKeyRect.topleft(WINDOWWIDTH-200, WINDOWHEIGHT-30)
+    pressKeyRect.topleft=(WINDOWWIDTH-200, WINDOWHEIGHT-30)
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
 
 
@@ -186,4 +186,36 @@ def showGameOverScreen():
             pygame.event.get() # clear event queue
             return
 
-def
+def drawScore(score):
+    scoreSurf = BASICFONT.render('Score: %s' % (score), True, WHITE)
+    scoreRect =scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOWWIDTH-120, 10)
+    DISPLAYSURF.blit(scoreSurf, scoreRect)
+
+
+def drawWorm(wormCoords):
+    for coord in wormCoords:
+        x = coord['x']* CELLSIZE
+        y= coord['y']*CELLSIZE
+        wormSegmentRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
+        pygame.draw.rect(DISPLAYSURF, DARKGREEN, wormSegmentRect)
+        wormInnerSegmentRect = pygame.Rect(x+4,y+4,CELLSIZE-8,CELLSIZE-8)
+        pygame.draw.rect(DISPLAYSURF,GREEN, wormInnerSegmentRect)
+
+
+def drawApple(coord):
+    x = coord['x']*CELLSIZE
+    y = coord['y']*CELLSIZE
+    appleRect = pygame.Rect(x, y, CELLSIZE, CELLSIZE)
+    pygame.draw.rect(DISPLAYSURF, RED, appleRect)
+
+
+def drawGrid():
+    for x in range(0, WINDOWWIDTH, CELLSIZE): # draw vertical lines
+        pygame.draw.line(DISPLAYSURF, DARKGRAY, (x,0), (x,WINDOWHEIGHT))
+    for y in range(0, WINDOWHEIGHT, CELLSIZE): # draw horizontal lines
+        pygame.draw.line(DISPLAYSURF, DARKGRAY, (0,y), (WINDOWWIDTH,y))
+
+
+if __name__ == "__main__":
+    main()
