@@ -77,7 +77,7 @@ def runGame():
             return # game over
 
         for wormBody in wormCoords[1:]:
-            if wormBody['x']== wormCoords[HEAD]['x'] and wormCoords[HEAD]['y'] == apple['y']:
+            if wormBody['x']== wormCoords[HEAD]['x'] and wormBody['y'] == wormCoords[HEAD]['y']:
                 return # game over
 
         # check if worm has eaten an apple
@@ -91,7 +91,7 @@ def runGame():
         if direction == UP:
             newHead = {'x':wormCoords[HEAD]['x'], 'y':wormCoords[HEAD]['y']-1}
         elif direction == DOWN:
-            newHead = {'x':wormCoords[HEAD]['x'], 'y': wormCoords[HEAD]['y']}
+            newHead = {'x':wormCoords[HEAD]['x'], 'y': wormCoords[HEAD]['y']+1}
         elif direction == LEFT:
             newHead = {'x': wormCoords[HEAD]['x']-1, 'y':wormCoords[HEAD]['y']}
         elif direction == RIGHT :
