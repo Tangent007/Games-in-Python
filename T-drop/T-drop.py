@@ -226,7 +226,7 @@ def runGame():
             
             elif event.type == KEYDOWN:
                 # moving the block sideways 
-                if (event.key == K_LEFT or event.key == K_a) and isValidPosition(board, fallingPiece, adjx=-1):
+                if (event.key == K_LEFT or event.key == K_a) and isValidPosition(board, fallingPiece, adjX=-1):
                     fallingPiece['x'] -=1
                     movingLeft =True
                     movingRight = False
@@ -240,4 +240,70 @@ def runGame():
 
                 
                 # rotating the block (if there is room to rotate)
+                elif (event.key == K_UP or event.key == K_w):
+                    fallingPiece['rotation']= (fallingPiece['rotation']+1)%len(SHAPES[fallingPiece['shape']])
+                    if not isValidPosition(board, fallingPiece):
+                        fallingPiece['rotation']= (fallingPiece['rotation']-1)%len(SHAPES[fallingPiece['shape']])
                 
+                elif (event.key ==K_q): # rotate in other direction
+                    fallingPiece['rotation'] = (fallingPiece['rotation']-1)%len(SHAPES[fallingPiece['shape']])
+                    if not isValidPosition(board, fallingPiece):
+                        fallingPiece['rotation'] = (fallingPiece['rotation']+1)%len(SHAPES[fallingPiece['shape']])
+                
+                # making the block fall faster with down keys
+
+                elif (event.key == K_DOWN or event.key == K_s):
+                    movingDown = True
+                    if isValidPosition(board, fallingPiece, adjY=1):
+                        fallingPiece['y'] +=1
+                    lastMoveDownTime = time.time()
+
+                # move the block to all the way down
+
+                elif event.key == K_SPACE:
+                    movingDown = False
+                    movingLeft = False
+                    movingRight = False
+                    for i in range(1, BOARDHEIGHT):
+                        if not isValidPosition(board, fallingPiece, adjY=i):
+                            break
+                    fallingPiece['y'] += i+1
+
+        # handle moving the block because of user input
+        if (movingLeft or movingRight) and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ:
+            if movingLeft and isValidPosition(board, fallingPiece, adjX=-1):
+                fallingPiece['x']-=1
+            elif movingRight and isValidPosition(board, fallingPiece, adjX=1):
+                fallingPiece['x']+=1
+            lastMoveSidewaysTime= time.time()
+
+        if movingDown and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ and isValidPosition(board, fallingPiece, adjY=1):
+            fallingPiece['y']+=1
+            lastMoveDownTime= time.time()
+
+        # let the piece fall if it is the time to fall
+        if time.time() - lastFallTime > fallFreq :
+            # see if the piece has landed
+            if not isValidPosition(board, fallingPiece, adjY=1):
+                # falling piece has landed , set it on the board
+                addToBoard(board, fallingPiece)
+                score += removeCompleteLines(board)
+                level, fallFreq = calculateLevelAndFallFreq(score)
+                fallingPiece = False
+            else:
+                # piece did not land, just move the block down
+                fallingPiece['y']+=1
+                lastFallTime = time.time()
+        
+        # drawing everything on the screen 
+        DISPLAYSURF.fill(BGCOLOR)
+        drawBoard(board)
+        drawStatus(score, level)
+        drawNextPiece(nextPiece)
+        if fallingPiece != None:
+            drawPiece(fallingPiece)
+        pygame.display.update()
+        FPSCLOCK.tick(FPS)
+
+def makeTextObjs(text, font, color):
+    
