@@ -399,4 +399,100 @@ def isOnBoard(x, y):
 
 def isValidPosition(board , piece, adjX=0, adjY=0):
     # return true if the piece is within the board and not colliding
+    for x in range(TEMPLATEWIDTH):
+        for y in range(TEMPLATEHEIGHT):
+            isAboveBoard = y+ piece['y']+adjY<0
+
+            if isAboveBoard or SHAPES[piece['shape']][piece['rotation']][y][x] == BLANK:
+                continue
+            if not isOnBoard(x+ piece['x']+ adjX, y + piece['y']+ adjY):
+                return False
+            if board[x+ piece['x']+ adjX][y + piece['y']+ adjY] != BLANK:
+                return False
+            if board[x+ piece['x']+ adjX][y+ piece['y']+adjY] != BLANK:
+                return False
+    return True
+
+def isCompleteLine(board, y):
+    # return true if the line filled with boxes with no gaps.
+    for x in range(BOARDWIDTH):
+        if board[x][y]== BLANK:
+            return False
+    return True
+
+def removeCompleteLines(board):
+    # remove any completed lines on the board, move everything above them down, and return the number of complete lines
+    numLinesRemoved = 0
+    y = BOARDHEIGHT-1 # start y at the bottom of the board
+    while y>=0 :
+        if isCompleteLine(board, y):
+            # remove the line and pull boxes down  by one line
+            for pullDownY in range(y, 0, -1):
+                for x in range(BOARDWIDTH):
+                    board[x][pullDownY] = board[x][pullDownY-1]
+            # set very top line to blank
+
+            for x in range(BOARDWIDTH):
+                board[x][0] = BLANK
+            numLinesRemoved +=1
+
+            # note on the next iteration of the loop, y is the same
+            # this is so that if the line that was pulled down is also
+            # complete, it will be removed
+
+        else:
+            y -=1 # move on to check next row up
+    return numLinesRemoved
+
+
+def convertToPixelCoords(boxx, boxy):
+    # convert the given xy coordinates of the board to xy 
+    # coordinates of the locstion on the screen
+    return (XMARGIN+ (boxx*BOXSIZE)), (TOPMARGIN+ (boxy*BOXSIZE))
+
+
+def drawBox(boxx, boxy, color, pixelx = None, pixely= None):
+    # draw a single box (each T-drop piece has four boxes)
+    # at xy coordinates on the board, or , if pixelx & pixely
+    # are specified, draw to the pixel coordinates stored in 
+    # pixelx & pixely (this is used for the "Next" piece)
+    if color == BLANK:
+        return
+    if pixelx ==None and pixely == None:
+        pixelx, pixely = convertToPixelCoords( boxx, boxy)
+    pygame.draw.rect(DISPLAYSURF, COLORS[color], (pixelx+1, pixely+1, BOXSIZE-1, BOXSIZE-1))
+    pygame.draw.rect(DISPLAYSURF, LIGHTCOLORS[color], (pixelx+1, pixely+1, BOXSIZE-4, BOXSIZE-4))
+
+
+def drawBoard(board):
+    # draw the border around the board
+    pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (XMARGIN-3, TOPMARGIN-7, (BOARDHEIGHT*BOXSIZE)+8, (BOARDHEIGHT*BOXSIZE)+8), 5)
+
+    # fill the background of the board
+    pygame.draw.rect(DISPLAYSURF, BGCOLOR, (XMARGIN, TOPMARGIN, BOXSIZE*BOARDWIDTH, BOXSIZE*BOARDWIDTH))
+    #draw the individual boxes on the board
+
+    for x in range(BOARDWIDTH):
+        for y in range(BOARDHEIGHT):
+            drawBox(x, y, board[x][y])
+
+def drawStatus(score, level):
+    # draw the score text
+    scoreSurf = BASICFONT.RENDER('Score: %s'%score, True, TEXTCOLOR)
+    scoreRect = scoreSurf.get_rect()
+    scoreRect.topleft = (WINDOWWIDTH-150, 20)
+    DISPLAYSURF.blit(scoreSurf, scoreRect)
+
+    # draw the level text
+    levelSurf = BASICFONT.render('Level : %s'%level, True, TEXTCOLOR)
+    levelRect = levelSurf.get_rect()
+    levelRect.topleft = (WINDOWWIDTH-150, 50)
+    DISPLAYSURF.blit(levelSurf, levelRect)
+
+def drawPiece(piece, pixelx=None, pixely=None):
+    shapeToDraw = SHAPES[piece['shape']][piece['rotation']]
+    if pixelx == None and pixely == None:
+        # if pixelx & pixely hasn't been specified, use the location stored in the piece data structure
+        pixelx, pixely = convertToPixelCoords(piece['x'],piece['y'])
     
+    # draw each of the blocks that make up the piece
