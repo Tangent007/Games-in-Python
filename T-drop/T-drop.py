@@ -149,7 +149,7 @@ T_SHAPE_TEMPLATE = [['.....',
                     '..0..',
                     '.....']]
 
-SHAPES = {'S':S_SHAPE_TEMPLATE,
+PIECES = {'S':S_SHAPE_TEMPLATE,
         'Z':Z_SHAPE_TEMPLATE,
         'J':J_SHAPE_TEMPLATE,
         'L':L_SHAPE_TEMPLATE,
@@ -241,14 +241,14 @@ def runGame():
                 
                 # rotating the block (if there is room to rotate)
                 elif (event.key == K_UP or event.key == K_w):
-                    fallingPiece['rotation']= (fallingPiece['rotation']+1)%len(SHAPES[fallingPiece['shape']])
+                    fallingPiece['rotation']= (fallingPiece['rotation']+1)%len(PIECES[fallingPiece['shape']])
                     if not isValidPosition(board, fallingPiece):
-                        fallingPiece['rotation']= (fallingPiece['rotation']-1)%len(SHAPES[fallingPiece['shape']])
+                        fallingPiece['rotation']= (fallingPiece['rotation']-1)%len(PIECES[fallingPiece['shape']])
                 
                 elif (event.key ==K_q): # rotate in other direction
-                    fallingPiece['rotation'] = (fallingPiece['rotation']-1)%len(SHAPES[fallingPiece['shape']])
+                    fallingPiece['rotation'] = (fallingPiece['rotation']-1)%len(PIECES[fallingPiece['shape']])
                     if not isValidPosition(board, fallingPiece):
-                        fallingPiece['rotation'] = (fallingPiece['rotation']+1)%len(SHAPES[fallingPiece['shape']])
+                        fallingPiece['rotation'] = (fallingPiece['rotation']+1)%len(PIECES[fallingPiece['shape']])
                 
                 # making the block fall faster with down keys
 
@@ -267,7 +267,7 @@ def runGame():
                     for i in range(1, BOARDHEIGHT):
                         if not isValidPosition(board, fallingPiece, adjY=i):
                             break
-                    fallingPiece['y'] += i+1
+                    fallingPiece['y'] += i-1
 
         # handle moving the block because of user input
         if (movingLeft or movingRight) and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ:
@@ -277,7 +277,7 @@ def runGame():
                 fallingPiece['x']+=1
             lastMoveSidewaysTime= time.time()
 
-        if movingDown and time.time() - lastMoveSidewaysTime > MOVESIDEWAYSFREQ and isValidPosition(board, fallingPiece, adjY=1):
+        if movingDown and time.time() - lastMoveDownTime > MOVEDOWNFREQ and isValidPosition(board, fallingPiece, adjY=1):
             fallingPiece['y']+=1
             lastMoveDownTime= time.time()
 
@@ -289,7 +289,7 @@ def runGame():
                 addToBoard(board, fallingPiece)
                 score += removeCompleteLines(board)
                 level, fallFreq = calculateLevelAndFallFreq(score)
-                fallingPiece = False
+                fallingPiece = None
             else:
                 # piece did not land, just move the block down
                 fallingPiece['y']+=1
@@ -328,7 +328,7 @@ def checkForKeyPress():
 def showTextScreen(text):
     # this fucntion draws a text in between the screeen until a key is pressed
 
-    titleSurf, titleRect = makeTextObjs(text, BIGFONT, TEXTCOLOR)
+    titleSurf, titleRect = makeTextObjs(text, BIGFONT, TEXTSHADOWCOLOR)
     titleRect.center = (int(WINDOWWIDTH/2),int(WINDOWHEIGHT/2)) 
     DISPLAYSURF.blit(titleSurf, titleRect)
 
@@ -342,13 +342,13 @@ def showTextScreen(text):
     # draw an additional text "press a key to play!"
 
     pressKeySurf, pressKeyRect = makeTextObjs('Press a key to play !', BASICFONT, TEXTCOLOR)
-    pressKeyRect.center = (int(WINDOWWIDTH/2),int(WINDOWHEIGHT/2))
+    pressKeyRect.center = (int(WINDOWWIDTH/2),int(WINDOWHEIGHT/2)+100)
 
     DISPLAYSURF.blit(pressKeySurf, pressKeyRect)
 
     while checkForKeyPress() == None:
         pygame.display.update()
-        FPSCLOCK.tick(FPS)
+        FPSCLOCK.tick()
 
 
 def checkForQuit():
@@ -370,9 +370,9 @@ def calculateLevelAndFallFreq(score):
 
 def getNewPiece():
     # return a random new piece in random rotation and color
-    shape = random.choice(list(SHAPES.keys()))
+    shape = random.choice(list(PIECES.keys()))
     newPiece = { 'shape': shape,
-                'rotation': random.randint(0, len(SHAPES[shape])-1),
+                'rotation': random.randint(0, len(PIECES[shape])-1),
                 'x': int(BOARDWIDTH/2)-int(TEMPLATEWIDTH/2),
                 'y': -2, # start it above the board i.e. less than 0
                 'color': random.randint(0, len(COLORS)-1)}
@@ -382,7 +382,7 @@ def addToBoard(board, piece):
     # fill the board with the piece's location, shape and rotation
     for x in range(TEMPLATEWIDTH):
         for y in range(TEMPLATEHEIGHT):
-            if SHAPES[piece['shape']][piece['rotation']][y][x] != BLANK:
+            if PIECES[piece['shape']][piece['rotation']][y][x] != BLANK:
                 board[x+piece['x']][y+piece['y']] = piece['color']
 
 
@@ -403,13 +403,11 @@ def isValidPosition(board , piece, adjX=0, adjY=0):
         for y in range(TEMPLATEHEIGHT):
             isAboveBoard = y+ piece['y']+adjY<0
 
-            if isAboveBoard or SHAPES[piece['shape']][piece['rotation']][y][x] == BLANK:
+            if isAboveBoard or PIECES[piece['shape']][piece['rotation']][y][x] == BLANK:
                 continue
             if not isOnBoard(x+ piece['x']+ adjX, y + piece['y']+ adjY):
                 return False
             if board[x+ piece['x']+ adjX][y + piece['y']+ adjY] != BLANK:
-                return False
-            if board[x+ piece['x']+ adjX][y+ piece['y']+adjY] != BLANK:
                 return False
     return True
 
@@ -490,7 +488,7 @@ def drawStatus(score, level):
     DISPLAYSURF.blit(levelSurf, levelRect)
 
 def drawPiece(piece, pixelx=None, pixely=None):
-    shapeToDraw = SHAPES[piece['shape']][piece['rotation']]
+    shapeToDraw = PIECES[piece['shape']][piece['rotation']]
     if pixelx == None and pixely == None:
         # if pixelx & pixely hasn't been specified, use the location stored in the piece data structure
         pixelx, pixely = convertToPixelCoords(piece['x'],piece['y'])
