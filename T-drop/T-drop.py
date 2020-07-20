@@ -162,10 +162,10 @@ def main():
     global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
-    DISPLAYSURF - pygame.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
-    BASICFONT = pygame.font.Font('freesansnold.ttf',18)
+    DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
+    BASICFONT = pygame.font.Font('freesansbold.ttf',18)
     BIGFONT = pygame.font.Font('freesansbold.ttf',100)
-    pygame.displayt.set_caption('T-Drop')
+    pygame.display.set_caption('T-Drop')
 
     showTextScreen('T-drop')
 
@@ -375,7 +375,7 @@ def getNewPiece():
                 'rotation': random.randint(0, len(SHAPES[shape])-1),
                 'x': int(BOARDWIDTH/2)-int(TEMPLATEWIDTH/2),
                 'y': -2, # start it above the board i.e. less than 0
-                'color': random.randint(len(0, len(COLORS)-1))}
+                'color': random.randint(0, len(COLORS)-1)}
     return newPiece
 
 def addToBoard(board, piece):
@@ -478,7 +478,7 @@ def drawBoard(board):
 
 def drawStatus(score, level):
     # draw the score text
-    scoreSurf = BASICFONT.RENDER('Score: %s'%score, True, TEXTCOLOR)
+    scoreSurf = BASICFONT.render('Score: %s'%score, True, TEXTCOLOR)
     scoreRect = scoreSurf.get_rect()
     scoreRect.topleft = (WINDOWWIDTH-150, 20)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
@@ -496,3 +496,21 @@ def drawPiece(piece, pixelx=None, pixely=None):
         pixelx, pixely = convertToPixelCoords(piece['x'],piece['y'])
     
     # draw each of the blocks that make up the piece
+    for x in range(TEMPLATEWIDTH):
+        for y in range(TEMPLATEHEIGHT):
+            if shapeToDraw[y][x] != BLANK:
+                drawBox(None, None, piece['color'], pixelx+ (x*BOXSIZE), pixely+ (y*BOXSIZE))
+
+
+def drawNextPiece(piece):
+    # draw the "next" text
+    nextSurf = BASICFONT.render('Next: ', True, TEXTCOLOR)
+    nextRect = nextSurf.get_rect()
+    nextRect.topleft = (WINDOWWIDTH-120, 80)
+    DISPLAYSURF.blit(nextSurf, nextRect)
+    # draw the "next" piece
+    drawPiece(piece, pixelx= WINDOWWIDTH-120, pixely = 100)
+
+
+if __name__ == "__main__":
+    main()
